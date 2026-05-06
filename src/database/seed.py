@@ -5,9 +5,11 @@ from sqlalchemy import select
 from src.database.db import AsyncSessionLocal, Base, engine
 from src.models import User
 from src.models.contact import Contact
+from src.services.auth import get_password_hash
 
 
 SEED_USER_EMAIL = "seed.user@example.com"
+SEED_USER_PASSWORD = "seedpassword123"
 
 
 async def seed_contacts() -> None:
@@ -22,7 +24,7 @@ async def seed_contacts() -> None:
             seed_user = User(
                 username="seed-user",
                 email=SEED_USER_EMAIL,
-                hashed_password="seed-password-placeholder",
+                hashed_password=get_password_hash(SEED_USER_PASSWORD),
                 is_verified=True,
             )
             session.add(seed_user)
