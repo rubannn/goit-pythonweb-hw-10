@@ -12,7 +12,9 @@ from src.crud.contacts import (
 )
 from src.database.db import get_db
 from src.models.contact import Contact
+from src.models.user import User
 from src.schemas.contact import ContactCreate, ContactResponse, ContactUpdate
+from src.services.auth import get_current_user
 
 router = APIRouter(prefix="/contacts", tags=["contacts"])
 
@@ -27,9 +29,11 @@ def to_contact_response_list(contacts: list[Contact]) -> list[ContactResponse]:
 
 @router.post("/", response_model=ContactResponse, status_code=status.HTTP_201_CREATED)
 async def create_contact_endpoint(
-    body: ContactCreate, db: AsyncSession = Depends(get_db)
+    body: ContactCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> ContactResponse:
-    contact = await create_contact(db, body)
+    contact = await create_contact(db, body, current_user)
     return to_contact_response(contact)
 
 
@@ -39,7 +43,9 @@ async def get_contacts_endpoint(
     last_name: str | None = Query(default=None),
     email: str | None = Query(default=None),
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> list[ContactResponse]:
+    _ = current_user
     if first_name or last_name or email:
         contacts = await search_contacts(db, first_name, last_name, email)
         return to_contact_response_list(contacts)
@@ -51,15 +57,20 @@ async def get_contacts_endpoint(
 @router.get("/upcoming-birthdays", response_model=list[ContactResponse])
 async def get_upcoming_birthdays_endpoint(
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> list[ContactResponse]:
+    _ = current_user
     contacts = await get_upcoming_birthdays(db)
     return to_contact_response_list(contacts)
 
 
 @router.get("/{contact_id}", response_model=ContactResponse)
 async def get_contact_by_id_endpoint(
-    contact_id: int, db: AsyncSession = Depends(get_db)
+    contact_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> ContactResponse:
+    _ = current_user
     contact = await get_contact_by_id(db, contact_id)
 
     if contact is None:
@@ -76,7 +87,9 @@ async def update_contact_endpoint(
     contact_id: int,
     body: ContactUpdate,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> ContactResponse:
+    _ = current_user
     contact = await update_contact(db, contact_id, body)
 
     if contact is None:
@@ -90,8 +103,11 @@ async def update_contact_endpoint(
 
 @router.delete("/{contact_id}", response_model=ContactResponse)
 async def delete_contact_endpoint(
-    contact_id: int, db: AsyncSession = Depends(get_db)
+    contact_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> ContactResponse:
+    _ = current_user
     contact = await delete_contact(db, contact_id)
 
     if contact is None:

@@ -5,6 +5,7 @@ from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.contact import Contact
+from src.models.user import User
 from src.schemas.contact import ContactCreate, ContactUpdate
 
 
@@ -23,8 +24,12 @@ def _get_next_birthday_date(birthday: date, current_date: date) -> date:
     return next_birthday
 
 
-async def create_contact(db: AsyncSession, body: ContactCreate) -> Contact:
-    contact = Contact(**body.model_dump())
+async def create_contact(
+    db: AsyncSession,
+    body: ContactCreate,
+    owner: User,
+) -> Contact:
+    contact = Contact(**body.model_dump(), owner_id=owner.id)
     db.add(contact)
     await db.commit()
     await db.refresh(contact)
