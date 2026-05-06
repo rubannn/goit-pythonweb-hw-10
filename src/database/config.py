@@ -28,7 +28,9 @@ class Settings(BaseSettings):
     MAIL_STARTTLS: bool = True
     MAIL_SSL_TLS: bool = False
     MAIL_SUPPRESS_SEND: bool = True
+    EMAIL_VERIFICATION_TOKEN_EXPIRE_SECONDS: int = 3600
 
+    BACKEND_BASE_URL: str = "http://localhost:8000"
     FRONTEND_BASE_URL: str = "http://localhost:3000"
     CORS_ALLOWED_ORIGINS: str = "http://localhost:3000,http://127.0.0.1:3000"
     RATE_LIMIT_ME: str = "5/minute"

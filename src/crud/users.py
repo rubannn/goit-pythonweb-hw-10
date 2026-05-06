@@ -24,3 +24,10 @@ async def create_user(
     await db.commit()
     await db.refresh(user)
     return user
+
+
+async def confirm_user_email(db: AsyncSession, user: User) -> User:
+    user.is_verified = True
+    await db.commit()
+    await db.refresh(user)
+    return user
