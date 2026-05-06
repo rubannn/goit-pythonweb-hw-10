@@ -36,13 +36,14 @@ async def create_contact(
     return contact
 
 
-async def get_contacts(db: AsyncSession) -> list[Contact]:
-    result = await db.execute(select(Contact))
+async def get_contacts(db: AsyncSession, owner: User) -> list[Contact]:
+    result = await db.execute(select(Contact).where(Contact.owner_id == owner.id))
     return list(result.scalars().all())
 
 
 async def search_contacts(
     db: AsyncSession,
+    owner: User,
     first_name: str | None = None,
     last_name: str | None = None,
     email: str | None = None,
@@ -55,7 +56,7 @@ async def search_contacts(
     if email:
         filters.append(Contact.email.ilike(f"%{email}%"))
 
-    query = select(Contact)
+    query = select(Contact).where(Contact.owner_id == owner.id)
     if filters:
         query = query.where(or_(*filters))
 
@@ -64,16 +65,26 @@ async def search_contacts(
 
 
 async def get_contact_by_id(
-    db: AsyncSession, contact_id: int
+    db: AsyncSession,
+    contact_id: int,
+    owner: User,
 ) -> Contact | None:
-    result = await db.execute(select(Contact).where(Contact.id == contact_id))
+    result = await db.execute(
+        select(Contact).where(
+            Contact.id == contact_id,
+            Contact.owner_id == owner.id,
+        )
+    )
     return result.scalar_one_or_none()
 
 
 async def update_contact(
-    db: AsyncSession, contact_id: int, body: ContactUpdate
+    db: AsyncSession,
+    contact_id: int,
+    body: ContactUpdate,
+    owner: User,
 ) -> Contact | None:
-    contact = await get_contact_by_id(db, contact_id)
+    contact = await get_contact_by_id(db, contact_id, owner)
 
     if contact is None:
         return None
@@ -87,8 +98,12 @@ async def update_contact(
     return contact
 
 
-async def delete_contact(db: AsyncSession, contact_id: int) -> Contact | None:
-    contact = await get_contact_by_id(db, contact_id)
+async def delete_contact(
+    db: AsyncSession,
+    contact_id: int,
+    owner: User,
+) -> Contact | None:
+    contact = await get_contact_by_id(db, contact_id, owner)
 
     if contact is None:
         return None
@@ -99,11 +114,13 @@ async def delete_contact(db: AsyncSession, contact_id: int) -> Contact | None:
 
 
 async def get_upcoming_birthdays(
-    db: AsyncSession, days: int = 7
+    db: AsyncSession,
+    owner: User,
+    days: int = 7,
 ) -> list[Contact]:
     today = date.today()
     end_date = today + timedelta(days=days)
-    result = await db.execute(select(Contact))
+    result = await db.execute(select(Contact).where(Contact.owner_id == owner.id))
     contacts = result.scalars().all()
     upcoming_contacts = []
 

@@ -45,12 +45,17 @@ async def get_contacts_endpoint(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> list[ContactResponse]:
-    _ = current_user
     if first_name or last_name or email:
-        contacts = await search_contacts(db, first_name, last_name, email)
+        contacts = await search_contacts(
+            db,
+            current_user,
+            first_name,
+            last_name,
+            email,
+        )
         return to_contact_response_list(contacts)
 
-    contacts = await get_contacts(db)
+    contacts = await get_contacts(db, current_user)
     return to_contact_response_list(contacts)
 
 
@@ -59,8 +64,7 @@ async def get_upcoming_birthdays_endpoint(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> list[ContactResponse]:
-    _ = current_user
-    contacts = await get_upcoming_birthdays(db)
+    contacts = await get_upcoming_birthdays(db, current_user)
     return to_contact_response_list(contacts)
 
 
@@ -70,8 +74,7 @@ async def get_contact_by_id_endpoint(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> ContactResponse:
-    _ = current_user
-    contact = await get_contact_by_id(db, contact_id)
+    contact = await get_contact_by_id(db, contact_id, current_user)
 
     if contact is None:
         raise HTTPException(
@@ -89,8 +92,7 @@ async def update_contact_endpoint(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> ContactResponse:
-    _ = current_user
-    contact = await update_contact(db, contact_id, body)
+    contact = await update_contact(db, contact_id, body, current_user)
 
     if contact is None:
         raise HTTPException(
@@ -107,8 +109,7 @@ async def delete_contact_endpoint(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> ContactResponse:
-    _ = current_user
-    contact = await delete_contact(db, contact_id)
+    contact = await delete_contact(db, contact_id, current_user)
 
     if contact is None:
         raise HTTPException(
