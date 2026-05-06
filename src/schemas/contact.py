@@ -27,5 +27,6 @@ class ContactUpdate(BaseModel):
 
 class ContactResponse(ContactBase):
     id: int
+    owner_id: int | None = None
 
     model_config = ConfigDict(from_attributes=True)

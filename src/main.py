@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+import src.models  # noqa: F401
 from src.api.contacts import router as contacts_router
 from src.database.config import settings
 from src.database.db import Base, engine
