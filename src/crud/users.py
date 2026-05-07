@@ -31,3 +31,14 @@ async def confirm_user_email(db: AsyncSession, user: User) -> User:
     await db.commit()
     await db.refresh(user)
     return user
+
+
+async def update_avatar_url(
+    db: AsyncSession,
+    user: User,
+    avatar_url: str,
+) -> User:
+    user.avatar_url = avatar_url
+    await db.commit()
+    await db.refresh(user)
+    return user
