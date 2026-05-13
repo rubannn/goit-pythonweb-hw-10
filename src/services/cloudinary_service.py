@@ -6,6 +6,14 @@ from fastapi import UploadFile
 from src.database.config import settings
 
 
+ALLOWED_AVATAR_CONTENT_TYPES = {
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "image/gif",
+}
+
+
 def _ensure_cloudinary_configured() -> None:
     if not all(
         [
@@ -29,9 +37,18 @@ def _configure_cloudinary() -> None:
     )
 
 
+def _validate_avatar_file_type(file: UploadFile) -> None:
+    if file.content_type not in ALLOWED_AVATAR_CONTENT_TYPES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid file type. Allowed types: JPEG, PNG, WEBP, GIF",
+        )
+
+
 async def upload_avatar(file: UploadFile, user_id: int) -> str:
     _ensure_cloudinary_configured()
     _configure_cloudinary()
+    _validate_avatar_file_type(file)
 
     contents = await file.read()
     if not contents:
